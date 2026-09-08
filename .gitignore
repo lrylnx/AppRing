@@ -1,0 +1,6 @@
+build/
+AppRing.app/
+.DS_Store
+*.xcodeproj
+xcuserdata/
+.!*
