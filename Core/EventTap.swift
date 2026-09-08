@@ -39,12 +39,25 @@ final class EventTap {
     /// Whether side buttons should be captured as a summon trigger.
     var sideButtonEnabled = true
 
+    /// While set, every keyDown is swallowed and forwarded here instead of
+    /// reaching the system — the settings window uses this to record a new
+    /// shortcut without ⌘Tab popping the system switcher.
+    var recordingHandler: ((Int, CGEventFlags) -> Void)?
+
     /// Tracks a swallowed side-button press so its up event is balanced.
     private var sideDownConsumed = false
 
-    /// True while Command has been held since the last release — so we only
-    /// report "command released" when it actually was pressed.
-    private var cmdWasDown = false
+    /// The four primary modifier flags we match shortcuts against.
+    private static let primaryMods: CGEventFlags =
+        [.maskControl, .maskAlternate, .maskShift, .maskCommand]
+
+    /// True while at least one of the summon shortcut's modifiers is held —
+    /// so we only report "released" when it actually was pressed.
+    private var summonModWasDown = false
+
+    /// Set while a modifier-free summon key (F8-style) is down; its keyUp
+    /// commits the ring.
+    private var visibleSummonKey = false
 
     var isActive: Bool {
         guard let tap else { return false }
@@ -57,6 +70,7 @@ final class EventTap {
 
         let mask: CGEventMask =
             (1 << CGEventType.keyDown.rawValue) |
+            (1 << CGEventType.keyUp.rawValue) |
             (1 << CGEventType.flagsChanged.rawValue) |
             (1 << CGEventType.otherMouseDown.rawValue) |
             (1 << CGEventType.otherMouseUp.rawValue)
@@ -106,31 +120,75 @@ final class EventTap {
             return Unmanaged.passUnretained(event)
         }
 
+        // Paused (settings window recording a shortcut): swallow every keyDown
+        // and hand it to the recorder — the system never sees ⌘Tab, so its
+        // switcher can't pop over the settings window.
+        if let handler = recordingHandler, type == .keyDown {
+            let keyCode = Int(event.getIntegerValueField(.keyboardEventKeycode))
+            handler(keyCode, event.flags)
+            return nil
+        }
+
         switch type {
         case .flagsChanged:
-            let cmdDown = event.flags.contains(.maskCommand)
-            if cmdDown {
-                cmdWasDown = true
-            } else if cmdWasDown {
-                cmdWasDown = false
+            // "Commit on modifier release" generalises to whichever modifiers
+            // the summon shortcut uses (⌘ by default): once none of them is
+            // held anymore, the chord is over.
+            let held = event.flags.intersection(EventTap.primaryMods)
+            let mods = Settings.summonModifiers.intersection(EventTap.primaryMods)
+            if !held.isEmpty {
+                if !held.intersection(mods).isEmpty { summonModWasDown = true }
+            } else if summonModWasDown {
+                summonModWasDown = false
                 delegate?.eventTapDidReleaseCommand()
             }
             return Unmanaged.passUnretained(event)  // never swallow modifier changes
 
+        case .keyUp:
+            // A modifier-free summon key (e.g. F8) has no modifier-release to
+            // commit on — the key's own up event closes the ring instead. The
+            // matching keyDown was swallowed, so swallow this one too.
+            if Settings.summonModifiers.isEmpty,
+               Int(event.getIntegerValueField(.keyboardEventKeycode)) == Settings.summonKeyCode {
+                if visibleSummonKey {
+                    visibleSummonKey = false
+                    delegate?.eventTapDidReleaseCommand()
+                }
+                return nil
+            }
+            return Unmanaged.passUnretained(event)
+
         case .keyDown:
             let keyCode = Int(event.getIntegerValueField(.keyboardEventKeycode))
             let shift = event.flags.contains(.maskShift)
-            let cmd = event.flags.contains(.maskCommand)
+            let mods = Settings.summonModifiers
+            let summon: Bool
+            if mods.isEmpty {
+                // A modifier-free key (e.g. F8) fires on the bare key press.
+                summon = keyCode == Settings.summonKeyCode
+            } else {
+                // Match on the primary flags, tolerating an *extra* Shift —
+                // ⇧⌘Tab must still summon (and reports shift for reverse
+                // cycling), matching the system switcher's muscle memory.
+                let held = event.flags.intersection(EventTap.primaryMods)
+                let want = mods.intersection(EventTap.primaryMods)
+                summon = keyCode == Settings.summonKeyCode
+                    && held.subtracting(.maskShift) == want.subtracting(.maskShift)
+                    && (!want.contains(.maskShift) || held.contains(.maskShift))
+            }
+
+            if summon {
+                if mods.isEmpty { visibleSummonKey = true }
+                let consumed = delegate?.eventTapDidTab(shift: shift, ringVisible: ringVisible) ?? false
+                return consumed ? nil : Unmanaged.passUnretained(event)
+            }
+
+            // Plain Tab cycles once the ring is up (as before).
             let otherMods = event.flags.contains(.maskControl) || event.flags.contains(.maskAlternate)
                 || event.flags.contains(.maskSecondaryFn)
-
-            if keyCode == kVK_Tab, !otherMods {
-                // Cmd+Tab summons; plain Tab cycles once the ring is up.
-                if cmd || ringVisible {
-                    let consumed = delegate?.eventTapDidTab(shift: shift, ringVisible: ringVisible) ?? false
-                    return consumed ? nil : Unmanaged.passUnretained(event)
-                }
-                return Unmanaged.passUnretained(event)
+            if ringVisible, keyCode == kVK_Tab, !otherMods, let delegate {
+                let consumed = delegate.eventTapDidTab(shift: shift, ringVisible: true)
+                return consumed ? nil : Unmanaged.passUnretained(event)
             }
 
             if ringVisible, let delegate {

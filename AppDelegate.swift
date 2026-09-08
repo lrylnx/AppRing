@@ -29,9 +29,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         let menu = NSMenu()
         menu.autoenablesItems = false
+        let settings = NSMenuItem(title: "设置…", action: #selector(openSettings), keyEquivalent: ",")
+        settings.target = self
+        menu.addItem(settings)
         let side = NSMenuItem(title: "鼠标侧键呼出", action: #selector(toggleSideButton), keyEquivalent: "")
         side.target = self
-        side.state = RingController.shared.sideButtonEnabled ? .on : .off
+        side.state = Settings.sideButtonEnabled ? .on : .off
         menu.addItem(side)
         menu.addItem(.separator())
         let quit = NSMenuItem(title: "退出 AppRing", action: #selector(quit), keyEquivalent: "q")
@@ -40,13 +43,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem.menu = menu
     }
 
+    @objc private func openSettings() {
+        SettingsWindow.shared.show()
+    }
+
     @objc private func toggleSideButton() {
-        RingController.shared.sideButtonEnabled.toggle()
+        let on = !Settings.sideButtonEnabled
+        Settings.sideButtonEnabled = on
+        RingController.shared.sideButtonEnabled = on
         rebuildMenu()
     }
 
     private func rebuildMenu() {
-        statusItem.menu?.items.first?.state = RingController.shared.sideButtonEnabled ? .on : .off
+        statusItem.menu?.item(at: 1)?.state = Settings.sideButtonEnabled ? .on : .off
     }
 
     @objc private func quit() {

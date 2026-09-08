@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="docs/appicon.png" width="128" alt="AppRing icon">
+
 # AppRing
 
 **A radial app switcher for macOS — summon it at your cursor, flick to any app or window.**
@@ -26,6 +28,12 @@ thumbnails** blooms outward — pick the exact window you want in one motion.
 
 - **Summon anywhere** — press `Cmd+Tab` or a **mouse side button**; the ring
   opens at the pointer, not the screen center.
+- **Default `⌘Tab`, zero learning curve** — out of the box AppRing takes over
+  the exact same chord as the system switcher, so muscle memory carries over
+  unchanged. Want it back? One click in Settings restores the default.
+- **Settings** — remap the summon shortcut to any chord (`⌃⌥Tab`, `⇧⌘Space`,
+  a bare `F8`, …) with a built-in recorder, toggle **launch at login**, and
+  enable/disable the side-button trigger.
 - **Radial MRU layout** — apps are arranged most-recently-used, top = current,
   then clockwise. The disc scales to fit however many apps you have open.
 - **Window-level switching** — dwell on an app with multiple windows and a fan
@@ -77,7 +85,7 @@ open AppRing.app
 2. Press `Cmd+Tab` (or click a mouse side button) to summon the ring at your cursor.
 3. Hover an app icon and release / click to switch to it.
 4. For a multi-window app, keep hovering until the window fan blooms, then click a window.
-5. Toggle the side-button trigger or quit from the menu-bar icon.
+5. Open **设置…** from the menu-bar icon to remap the shortcut, enable launch-at-login, or toggle the side button.
 
 ---
 
@@ -91,6 +99,10 @@ open AppRing.app
 ### 功能特性
 
 - **光标处呼出** —— 按 `Cmd+Tab` 或**鼠标侧键**，圆环直接出现在指针位置，而非屏幕中央。
+- **默认 `⌘Tab`，零学习成本** —— 开箱即用接管与系统切换器完全相同的按键，肌肉记忆直接
+  平移；想还给系统？设置里一键恢复默认。
+- **设置面板** —— 内置快捷键录制器，可把呼出键改成任意组合（`⌃⌥Tab`、`⇧⌘Space`、
+  裸 `F8` 等），支持**开机自启**开关与鼠标侧键开关。
 - **环形 MRU 布局** —— 应用按最近使用排序，顶部为当前应用、顺时针排列；圆盘大小随
   打开的应用数量自动缩放。
 - **窗口级切换** —— 在多窗口应用上停留，会绽放出一排真实窗口卡片，每张带**实时缩略图**、

@@ -16,6 +16,7 @@ xcrun lipo -create -output build/AppRing build/AppRing_arm64 build/AppRing_x86_6
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp build/AppRing "$APP/Contents/MacOS/AppRing"
 cp Resources/Info.plist "$APP/Contents/Info.plist"
+cp Resources/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
 printf 'APPL????' > "$APP/Contents/PkgInfo"
 codesign --force --deep --sign - "$APP" >/dev/null
 echo "✓ Built: $APP"

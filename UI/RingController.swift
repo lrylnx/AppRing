@@ -78,7 +78,14 @@ final class RingController: NSObject, EventTapDelegate {
         set { tap.sideButtonEnabled = newValue }
     }
 
+    /// Install a shortcut recorder on the tap; pass nil to restore normal
+    /// dispatch. While set, every keyDown is swallowed and routed to it.
+    func setShortcutRecorder(_ handler: ((Int, CGEventFlags) -> Void)?) {
+        tap.recordingHandler = handler
+    }
+
     func start() {
+        tap.sideButtonEnabled = Settings.sideButtonEnabled
         tap.install()
     }
 
