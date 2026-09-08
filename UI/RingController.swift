@@ -119,11 +119,13 @@ final class RingController: NSObject, EventTapDelegate {
         ringView.windowCounts = apps.map { counts[$0.processIdentifier] ?? 0 }
         IconCache.shared.prefetch(apps, size: RingView.iconSize)
 
-        // No default highlight: the ring just appears and *waits*. Selection
-        // is pointer-driven — keep hammering Cmd+Tab to hold it open, but it
-        // never walks the list on its own. Releasing Command without having
-        // pointed at anything simply dismisses (commitHighlight cancels).
-        ringView.highlight = nil
+        // Cmd+Tab summons with the *previous* app pre-highlighted (MRU index
+        // 1), exactly like the system switcher: a quick tap-and-release jumps
+        // back. Moving the pointer takes over from there — the cursor sits at
+        // the disc centre (a dead zone), so the default survives until the
+        // mouse reaches an icon. The side button keeps the old "wait for the
+        // pointer" behaviour.
+        ringView.highlight = (trigger == .cmdTab && apps.count > 1) ? 1 : nil
 
         // Disc center = pointer, clamped so the disc *and* the petal fan
         // stay on screen.

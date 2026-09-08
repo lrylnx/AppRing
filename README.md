@@ -29,8 +29,10 @@ thumbnails** blooms outward — pick the exact window you want in one motion.
 - **Summon anywhere** — press `Cmd+Tab` or a **mouse side button**; the ring
   opens at the pointer, not the screen center.
 - **Default `⌘Tab`, zero learning curve** — out of the box AppRing takes over
-  the exact same chord as the system switcher, so muscle memory carries over
-  unchanged. Want it back? One click in Settings restores the default.
+  the exact same chord as the system switcher, and a quick tap-and-release
+  behaves identically: the **previous app** is pre-highlighted on summon, so
+  you flip back instantly. Keep the ring open and move the pointer (or press
+  Tab / arrows) to pick any app manually instead.
 - **Settings** — remap the summon shortcut to any chord (`⌃⌥Tab`, `⇧⌘Space`,
   a bare `F8`, …) with a built-in recorder, toggle **launch at login**, and
   enable/disable the side-button trigger.
@@ -83,6 +85,7 @@ open AppRing.app
 
 1. Launch AppRing — a small ring icon appears in the menu bar.
 2. Press `Cmd+Tab` (or click a mouse side button) to summon the ring at your cursor.
+   The previous app is already highlighted — release now to flip back to it.
 3. Hover an app icon and release / click to switch to it.
 4. For a multi-window app, keep hovering until the window fan blooms, then click a window.
 5. Open **设置…** from the menu-bar icon to remap the shortcut, enable launch-at-login, or toggle the side button.
